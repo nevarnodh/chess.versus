@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Chessboard from 'chessboardjsx';
 import Chess from 'chess.js';
 import io from 'socket.io-client';
+import './styles.css';
 
 const socket = io('http://localhost:3000');
 
@@ -39,15 +40,18 @@ const Game = ({ gameId, playerId }) => {
   };
 
   return (
-    <div>
+    <div className="game-container">
       <Chessboard
         position={fen}
         onDrop={(move) => handleMove(move)}
         orientation={playerId === 'player1' ? 'white' : 'black'}
+        className="chessboard"
       />
-      <button onClick={() => { chess.reset(); setFen('start'); }}>Restart</button>
-      <button onClick={() => alert('Draw Offered')}>Offer Draw</button>
-      <button onClick={() => alert('Game Resigned')}>Resign</button>
+      <div className="button-group">
+        <button onClick={() => { chess.reset(); setFen('start'); }}>Restart</button>
+        <button onClick={() => alert('Draw Offered')}>Offer Draw</button>
+        <button onClick={() => alert('Game Resigned')}>Resign</button>
+      </div>
     </div>
   );
 };
