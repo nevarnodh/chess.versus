@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Chessboard from 'chessboardjsx';
 import Chess from 'chess.js';
-import axios from 'axios';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3000');
 
 const Game = ({ gameId, playerId }) => {
   const [chess] = useState(new Chess());
@@ -9,45 +11,30 @@ const Game = ({ gameId, playerId }) => {
   const [playerTurn, setPlayerTurn] = useState('w');
 
   useEffect(() => {
-    // Load game state from backend if needed
-    const fetchGameState = async () => {
-      try {
-        const response = await axios.get(`/api/games/${gameId}`);
-        setFen(response.data.board);
-        setPlayerTurn(response.data.turn);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchGameState();
-  }, [gameId]);
+    socket.emit('joinGame', gameId);
 
-  const handleMove = async (move) => {
+    socket.on('moveMade', (move) => {
+      chess.move(move);
+      setFen(chess.fen());
+      setPlayerTurn(chess.turn() === 'w' ? 'b' : 'w');
+    });
+
+    return () => {
+      socket.off('moveMade');
+    };
+  }, [gameId, chess]);
+
+  const handleMove = (move) => {
     const newMove = {
       from: move.sourceSquare,
       to: move.targetSquare,
-      promotion: 'q', // Always promote to queen for simplicity
+      promotion: 'q',
     };
 
     if (chess.move(newMove)) {
       setFen(chess.fen());
       setPlayerTurn(chess.turn() === 'w' ? 'b' : 'w');
-
-      try {
-        const response = await axios.post('/api/games/move', {
-          gameId,
-          move: newMove,
-          playerId,
-        });
-
-        if (response.data && response.data.aiMove) {
-          chess.move(response.data.aiMove);
-          setFen(chess.fen());
-          setPlayerTurn(chess.turn() === 'w' ? 'b' : 'w');
-        }
-      } catch (error) {
-        console.error(error);
-      }
+      socket.emit('makeMove', { gameId, move: newMove });
     }
   };
 
