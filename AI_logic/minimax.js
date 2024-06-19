@@ -1,36 +1,39 @@
-// ai/minimax.js
+const Chess = require('chess.js').Chess;
+const { evaluateBoard } = require('./evaluateBoard');
+
 function minimax(board, depth, isMaximizingPlayer, alpha, beta) {
-  // Base case: evaluate the board if the game is over or max depth is reached
-  if (depth === 0 || isGameOver(board)) {
-    return evaluateBoard(board);
+  const chess = new Chess(board);
+
+  if (depth === 0 || chess.game_over()) {
+    return evaluateBoard(chess.board());
   }
+
+  const moves = chess.ugly_moves();
 
   if (isMaximizingPlayer) {
     let maxEval = -Infinity;
-    const possibleMoves = generateMoves(board, 'AI');
-    for (const move of possibleMoves) {
-      const newBoard = makeMove(board, move);
-      const eval = minimax(newBoard, depth - 1, false, alpha, beta);
+    for (let move of moves) {
+      chess.ugly_move(move);
+      const eval = minimax(chess.fen(), depth - 1, false, alpha, beta);
+      chess.undo();
       maxEval = Math.max(maxEval, eval);
       alpha = Math.max(alpha, eval);
-      if (beta <= alpha) {
-        break;
-      }
+      if (beta <= alpha) break;
     }
     return maxEval;
   } else {
     let minEval = Infinity;
-    const possibleMoves = generateMoves(board, 'Player');
-    for (const move of possibleMoves) {
-      const newBoard = makeMove(board, move);
-      const eval = minimax(newBoard, depth - 1, true, alpha, beta);
+    for (let move of moves) {
+      chess.ugly_move(move);
+      const eval = minimax(chess.fen(), depth - 1, true, alpha, beta);
+      chess.undo();
       minEval = Math.min(minEval, eval);
       beta = Math.min(beta, eval);
-      if (beta <= alpha) {
-        break;
-      }
+      if (beta <= alpha) break;
     }
     return minEval;
   }
 }
+
+module.exports = { minimax };
 

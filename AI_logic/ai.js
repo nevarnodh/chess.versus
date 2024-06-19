@@ -1,18 +1,25 @@
-// ai/ai.js
 const { minimax } = require('./minimax');
+const Chess = require('chess.js').Chess;
 
-function getBestMove(board) {
+function getBestMove(board, depth = 3) {
   let bestMove = null;
   let bestValue = -Infinity;
-  const possibleMoves = generateMoves(board, 'AI');
-  for (const move of possibleMoves) {
-    const newBoard = makeMove(board, move);
-    const boardValue = minimax(newBoard, 3, false, -Infinity, Infinity);
+  const chess = new Chess(board);
+  const possibleMoves = chess.ugly_moves();
+
+  possibleMoves.forEach(move => {
+    chess.ugly_move(move);
+    const boardValue = minimax(chess.fen(), depth, false, -Infinity, Infinity);
+    chess.undo();
+
     if (boardValue > bestValue) {
       bestValue = boardValue;
       bestMove = move;
     }
-  }
+  });
+
   return bestMove;
 }
+
+module.exports = { getBestMove };
 
