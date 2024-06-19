@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useHistory } from 'react-router-dom';
 
-function Register() {
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+const Register = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const history = useHistory();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     try {
-      await axios.post('/api/users/register', form);
-      // Handle success (e.g., redirect to login)
+      const response = await axios.post('/api/users/register', { username, email, password });
+      if (response.data) {
+        history.push('/profile');
+      }
     } catch (error) {
       console.error(error);
     }
@@ -20,13 +22,34 @@ function Register() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input name="username" value={form.username} onChange={handleChange} placeholder="Username" />
-      <input name="email" value={form.email} onChange={handleChange} placeholder="Email" />
-      <input name="password" value={form.password} onChange={handleChange} type="password" placeholder="Password" />
+      <input
+        type="text"
+        name="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Username"
+        required
+      />
+      <input
+        type="email"
+        name="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        required
+      />
+      <input
+        type="password"
+        name="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        required
+      />
       <button type="submit">Register</button>
     </form>
   );
-}
+};
 
 export default Register;
 
